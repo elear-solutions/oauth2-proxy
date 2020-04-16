@@ -451,6 +451,18 @@ func (p *OAuthProxy) ErrorPage(rw http.ResponseWriter, code int, title string, m
 	p.templates.ExecuteTemplate(rw, "error.html", t)
 }
 
+// LogoutPage to call logout from cocostore
+func (p *OAuthProxy) CocostoreLogout(rw http.ResponseWriter, title string) {
+        rw.WriteHeader(http.StatusOK)
+        t := struct {
+                Title       string
+        }{
+                Title:       fmt.Sprintf("%d", title),
+        }
+        p.templates.ExecuteTemplate(rw, "logout.html", t)
+}
+
+
 // SignInPage writes the sing in template to the response
 func (p *OAuthProxy) SignInPage(rw http.ResponseWriter, req *http.Request, code int) {
 	p.ClearSessionCookie(rw, req)
@@ -703,14 +715,16 @@ func (p *OAuthProxy) UserInfo(rw http.ResponseWriter, req *http.Request) {
 
 // SignOut sends a response to clear the authentication cookie
 func (p *OAuthProxy) SignOut(rw http.ResponseWriter, req *http.Request) {
-	redirect, err := p.GetRedirect(req)
+	/* redirect, err := p.GetRedirect(req)
 	if err != nil {
 		logger.Printf("Error obtaining redirect: %s", err.Error())
 		p.ErrorPage(rw, 500, "Internal Error", err.Error())
 		return
 	}
+        */
 	p.ClearSessionCookie(rw, req)
-	http.Redirect(rw, req, redirect, 302)
+        p.CocostoreLogout(rw, "clear session token")
+	//http.Redirect(rw, req, redirect, 302)
 }
 
 // OAuthStart starts the OAuth2 authentication flow
