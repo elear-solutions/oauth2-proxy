@@ -859,6 +859,12 @@ func (p *OAuthProxy) Proxy(rw http.ResponseWriter, req *http.Request) {
 	session, err := p.getAuthenticatedSession(rw, req)
 	switch err {
 	case nil:
+
+                cookie, err := req.Cookie("sessionToken")
+                if err != nil {
+                   fmt.Printf("can't find sessionToken redireacting to logout page")
+                   p.SignOut(rw, req);
+                }
 		// we are authenticated
 		p.addHeadersForProxying(rw, req, session)
 		p.serveMux.ServeHTTP(rw, req)
