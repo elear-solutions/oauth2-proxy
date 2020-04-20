@@ -197,7 +197,7 @@ function logout() {
           //var users = JSON.parse(xhr.responseText);
           if (xhr.readyState == 4 && xhr.status == "200") {
             console.log("Successful response: " + xhr.responseText);
-            window.location="http://localhost:4180/";
+            window.location="/";
             //location.reload();
           } else {
             console.error(users);
