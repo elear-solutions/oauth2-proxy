@@ -16,7 +16,6 @@ type COCOProvider struct {
 //<!--COCO Begin-->
 //COCO: NewCOCOProvider initiates a new COCOProvider
 //<!--COCO End-->
-
 func NewCOCOProvider(p *ProviderData) *COCOProvider {
 	p.ProviderName = "COCO"
 	if p.LoginURL.String() == "" {
@@ -50,7 +49,6 @@ func NewCOCOProvider(p *ProviderData) *COCOProvider {
 //<!--COCO Begin-->
 //COCO: segrigate coco header from acccess token
 //<!--COCO End-->
-
 func getCOCOHeader(accessToken string) http.Header {
 	header := make(http.Header)
 	header.Set("Accept", "application/json")
@@ -63,7 +61,6 @@ func getCOCOHeader(accessToken string) http.Header {
 //<!--COCO Begin-->
 //COCO: GetEmailAddress returns the Account userId
 //<!--COCO End-->
-
 func (p *COCOProvider) GetEmailAddress(s *sessions.SessionState) (string, error) {
 	if s.AccessToken == "" {
 		return "", errors.New("missing access token")
@@ -92,7 +89,6 @@ func (p *COCOProvider) GetEmailAddress(s *sessions.SessionState) (string, error)
 //<!--COCO Begin-->
 //COCO: ValidateSessionState validates the AccessToken
 //<!--COCO End-->
-
 func (p *COCOProvider) ValidateSessionState(s *sessions.SessionState) bool {
 	return validateToken(p, s.AccessToken, getCOCOHeader(s.AccessToken))
 }

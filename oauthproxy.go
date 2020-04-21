@@ -1130,20 +1130,6 @@ func isAjax(req *http.Request) bool {
         return false
 }
 
-/*
-// isAjax checks if a request is an ajax request
-func isAjax(req *http.Request) bool {
-	acceptValues := req.Header.Values("Accept")
-	const ajaxReq = applicationJSON
-	for _, v := range acceptValues {
-		if v == ajaxReq {
-			return true
-		}
-	}
-	return false
-}
-*/
-
 // ErrorJSON returns the error code with an application/json mime type
 func (p *OAuthProxy) ErrorJSON(rw http.ResponseWriter, code int) {
 	rw.Header().Set("Content-Type", applicationJSON)
