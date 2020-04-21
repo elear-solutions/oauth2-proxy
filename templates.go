@@ -179,6 +179,9 @@ func getTemplates() *template.Template {
 		logger.Fatalf("failed parsing template %s", err)
 	}
 
+//<!--COCO Begin-->
+//COCO: Add logout html page to call logout API
+//<!--COCO End-->
         t, err = t.Parse(`{{define "logout.html"}}
 <!DOCTYPE html>
 <html lang="en" charset="utf-8">
@@ -194,11 +197,9 @@ function logout() {
         xhr.withCredentials = true;
         xhr.onload = function () {
           console.log(xhr.responseText);
-          //var users = JSON.parse(xhr.responseText);
           if (xhr.readyState == 4 && xhr.status == "200") {
             console.log("Successful response: " + xhr.responseText);
             window.location="/";
-            //location.reload();
           } else {
             console.error(users);
           }

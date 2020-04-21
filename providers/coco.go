@@ -13,7 +13,10 @@ type COCOProvider struct {
 	*ProviderData
 }
 
-// NewCOCOProvider initiates a new COCOProvider
+//<!--COCO Begin-->
+//COCO: NewCOCOProvider initiates a new COCOProvider
+//<!--COCO End-->
+
 func NewCOCOProvider(p *ProviderData) *COCOProvider {
 	p.ProviderName = "COCO"
 	if p.LoginURL.String() == "" {
@@ -44,7 +47,9 @@ func NewCOCOProvider(p *ProviderData) *COCOProvider {
 	return &COCOProvider{ProviderData: p}
 }
 
-// segrigate coco header from acccess token
+//<!--COCO Begin-->
+//COCO: segrigate coco header from acccess token
+//<!--COCO End-->
 
 func getCOCOHeader(accessToken string) http.Header {
 	header := make(http.Header)
@@ -55,8 +60,9 @@ func getCOCOHeader(accessToken string) http.Header {
 	return header
 }
 
-
-// GetEmailAddress returns the Account userId 
+//<!--COCO Begin-->
+//COCO: GetEmailAddress returns the Account userId
+//<!--COCO End-->
 
 func (p *COCOProvider) GetEmailAddress(s *sessions.SessionState) (string, error) {
 	if s.AccessToken == "" {
@@ -83,7 +89,10 @@ func (p *COCOProvider) GetEmailAddress(s *sessions.SessionState) (string, error)
 	return r.Email , nil
 }
 
-// ValidateSessionState validates the AccessToken
+//<!--COCO Begin-->
+//COCO: ValidateSessionState validates the AccessToken
+//<!--COCO End-->
+
 func (p *COCOProvider) ValidateSessionState(s *sessions.SessionState) bool {
 	return validateToken(p, s.AccessToken, getCOCOHeader(s.AccessToken))
 }

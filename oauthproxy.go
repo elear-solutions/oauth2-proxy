@@ -457,7 +457,9 @@ func (p *OAuthProxy) ErrorPage(rw http.ResponseWriter, code int, title string, m
 	p.templates.ExecuteTemplate(rw, "error.html", t)
 }
 
-// LogoutPage to call logout from cocostore
+//<!--COCO Begin-->
+// COCO: logout from cocostore
+//<!--COCO End-->
 func (p *OAuthProxy) CocostoreLogout(rw http.ResponseWriter, title string) {
         rw.WriteHeader(http.StatusOK)
         t := struct {
@@ -749,8 +751,11 @@ func (p *OAuthProxy) SignOut(rw http.ResponseWriter, req *http.Request) {
 	}
         */
 	p.ClearSessionCookie(rw, req)
+        //<!--COCO Begin-->
+        // COCO: calling CocostoreLogout to call coco logout API
+        //<!--COCO End-->
         p.CocostoreLogout(rw, "clear session token")
-	//http.Redirect(rw, req, redirect, 302)
+
 }
 
 // OAuthStart starts the OAuth2 authentication flow
