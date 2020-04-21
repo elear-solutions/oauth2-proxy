@@ -190,7 +190,7 @@ func getTemplates() *template.Template {
 </head>
 <script>
 function logout() {
-        var url = "https://api.staging.getcoco.buzz/v1/auth/logout";
+        var url = "https://api.getcoco.buzz/v1/auth/logout";
 
         var xhr = new XMLHttpRequest();
         xhr.open("POST", url, true);
