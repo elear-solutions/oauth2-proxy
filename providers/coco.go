@@ -20,20 +20,19 @@ func NewCOCOProvider(p *ProviderData) *COCOProvider {
 	p.ProviderName = "COCO"
 	if p.LoginURL.String() == "" {
 		p.LoginURL = &url.URL{Scheme: "https",
-			Host: "api.staging.getcoco.buzz",
+			Host: "api.getcoco.buzz",
 			Path: "/oauth/authorize",
-			// ?granted_scopes=true
 		}
 	}
 	if p.RedeemURL.String() == "" {
 		p.RedeemURL = &url.URL{Scheme: "https",
-			Host: "api.staging.getcoco.buzz",
+			Host: "api.getcoco.buzz",
 			Path: "/oauth/token",
 		}
 	}
 	if p.ProfileURL.String() == "" {
 		p.ProfileURL = &url.URL{Scheme: "https",
-			Host: "api.staging.getcoco.buzz",
+			Host: "api.getcoco.buzz",
 			Path: "/user-manager/users/me",
 		}
 	}
