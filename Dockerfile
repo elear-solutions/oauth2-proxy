@@ -29,5 +29,7 @@ COPY --from=builder /go/src/github.com/oauth2-proxy/oauth2-proxy/oauth2-proxy /b
 COPY --from=builder /go/src/github.com/oauth2-proxy/oauth2-proxy/jwt_signing_key.pem /etc/ssl/private/jwt_signing_key.pem
 
 USER 2000:2000
+
 EXPOSE 4180
+
 ENTRYPOINT ["/bin/oauth2-proxy"]

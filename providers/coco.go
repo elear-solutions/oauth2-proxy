@@ -1,3 +1,24 @@
+/*===============================================================================*/
+/*********************************************************************************/
+/**
+ * @fileOverview Contains grove-proxy api functionality.
+ * @author AMIYA SANTRA, amiyasantra@healthasyst.com
+ * @copyright Copyright (c) 2020 Elear Solutions Tech Private Limited. All rights
+ * reserved.
+ * @license To any person (the "Recipient") obtaining a copy of this software and
+ * associated documentation files (the "Software"):
+ *
+ * All information contained in or disclosed by this software is confidential
+ * and proprietary information of Elear Solutions Tech Private Limited and all
+ * rights therein are expressly reserved. By accepting this material the
+ * recipient agrees that this material and the information contained therein is
+ * held in confidence and in trust and will NOT be used, copied, modified,
+ * merged, published, distributed, sublicensed, reproduced in whole or in part,
+ * nor its contents revealed in any manner to others without the express
+ * written permission of Elear Solutions Tech Private Limited.
+ */
+/*********************************************************************************/
+/*===============================================================================*/
 package providers
 
 import (
@@ -13,9 +34,7 @@ type COCOProvider struct {
 	*ProviderData
 }
 
-//<!--COCO Begin-->
 //COCO: NewCOCOProvider initiates a new COCOProvider
-//<!--COCO End-->
 func NewCOCOProvider(p *ProviderData) *COCOProvider {
 	p.ProviderName = "COCO"
 	if p.LoginURL.String() == "" {
@@ -45,9 +64,7 @@ func NewCOCOProvider(p *ProviderData) *COCOProvider {
 	return &COCOProvider{ProviderData: p}
 }
 
-//<!--COCO Begin-->
 //COCO: segrigate coco header from acccess token
-//<!--COCO End-->
 func getCOCOHeader(accessToken string) http.Header {
 	header := make(http.Header)
 	header.Set("Accept", "application/json")
@@ -57,9 +74,7 @@ func getCOCOHeader(accessToken string) http.Header {
 	return header
 }
 
-//<!--COCO Begin-->
 //COCO: GetEmailAddress returns the Account userId
-//<!--COCO End-->
 func (p *COCOProvider) GetEmailAddress(s *sessions.SessionState) (string, error) {
 	if s.AccessToken == "" {
 		return "", errors.New("missing access token")
@@ -85,9 +100,7 @@ func (p *COCOProvider) GetEmailAddress(s *sessions.SessionState) (string, error)
 	return r.Email , nil
 }
 
-//<!--COCO Begin-->
 //COCO: ValidateSessionState validates the AccessToken
-//<!--COCO End-->
 func (p *COCOProvider) ValidateSessionState(s *sessions.SessionState) bool {
 	return validateToken(p, s.AccessToken, getCOCOHeader(s.AccessToken))
 }

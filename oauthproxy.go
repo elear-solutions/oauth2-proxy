@@ -458,17 +458,19 @@ func (p *OAuthProxy) ErrorPage(rw http.ResponseWriter, code int, title string, m
 }
 
 //<!--COCO Begin-->
-// COCO: logout from cocostore
-//<!--COCO End-->
+// COCO: logout from coco
 func (p *OAuthProxy) CocostoreLogout(rw http.ResponseWriter, title string) {
         rw.WriteHeader(http.StatusOK)
+        // COCO: create a  stracture to pass a title in logout.html template
         t := struct {
                 Title       string
         }{
                 Title:       fmt.Sprintf("%d", title),
         }
+        // COCO: execute logout.html by passing stracture t
         p.templates.ExecuteTemplate(rw, "logout.html", t)
 }
+//<!--COCO End-->
 
 
 // SignInPage writes the sing in template to the response
@@ -743,11 +745,11 @@ func (p *OAuthProxy) UserInfo(rw http.ResponseWriter, req *http.Request) {
 
 // SignOut sends a response to clear the authentication cookie
 func (p *OAuthProxy) SignOut(rw http.ResponseWriter, req *http.Request) {
-	p.ClearSessionCookie(rw, req)
         //<!--COCO Begin-->
-        // COCO: calling CocostoreLogout to call coco logout API
+	p.ClearSessionCookie(rw, req)
+        // COCO: calling CocoLogout to call coco logout API
+        p.CocostoreLogout(rw, "logging out")
         //<!--COCO End-->
-        p.CocostoreLogout(rw, "clear session token")
 
 }
 
