@@ -25,9 +25,9 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-        "errors"
-        "github.com/oauth2-proxy/oauth2-proxy/pkg/apis/sessions"
-        "github.com/oauth2-proxy/oauth2-proxy/pkg/requests"
+	"errors"
+	"github.com/oauth2-proxy/oauth2-proxy/pkg/apis/sessions"
+	"github.com/oauth2-proxy/oauth2-proxy/pkg/requests"
 )
 
 type COCOProvider struct {
@@ -70,7 +70,7 @@ func getCOCOHeader(accessToken string) http.Header {
 	header.Set("Accept", "application/json")
 	header.Set("x-li-format", "json")
 	header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
-        fmt.Println("returnd header:")
+	fmt.Println("returnd header:")
 	return header
 }
 
