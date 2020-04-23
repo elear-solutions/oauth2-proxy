@@ -459,15 +459,15 @@ func (p *OAuthProxy) ErrorPage(rw http.ResponseWriter, code int, title string, m
 
 //<!--COCO Begin-->
 // COCO: logout from coco
-func (p *OAuthProxy) CocostoreLogout(rw http.ResponseWriter, title string) {
+func (p *OAuthProxy) CocoLogout(rw http.ResponseWriter, title string) {
         rw.WriteHeader(http.StatusOK)
-        // COCO: create a  stracture to pass a title in logout.html template
+        // COCO: create a  structure to pass a title in logout.html template
         t := struct {
                 Title       string
         }{
                 Title:       fmt.Sprintf("%d", title),
         }
-        // COCO: execute logout.html by passing stracture t
+        // COCO: execute logout.html by passing structure t
         p.templates.ExecuteTemplate(rw, "logout.html", t)
 }
 //<!--COCO End-->
@@ -745,12 +745,11 @@ func (p *OAuthProxy) UserInfo(rw http.ResponseWriter, req *http.Request) {
 
 // SignOut sends a response to clear the authentication cookie
 func (p *OAuthProxy) SignOut(rw http.ResponseWriter, req *http.Request) {
-        //<!--COCO Begin-->
+	 //<!--COCO Begin-->
 	p.ClearSessionCookie(rw, req)
-        // COCO: calling CocoLogout to call coco logout API
-        p.CocostoreLogout(rw, "logging out")
-        //<!--COCO End-->
-
+	// COCO: calling CocoLogout to call coco logout API
+        p.CocoLogout(rw, "Signing out")
+	//<!--COCO End-->
 }
 
 // OAuthStart starts the OAuth2 authentication flow

@@ -12,10 +12,10 @@ func loadTemplates(dir string) *template.Template {
 		return getTemplates()
 	}
 	logger.Printf("using custom template directory %q", dir)
-        //<!--COCO Begin-->
-        //COCO: Added new template logout.html to parse it
+	//<!--COCO Begin-->
+	// COCO: Added new template logout.html to parse it
 	t, err := template.New("").ParseFiles(path.Join(dir, "sign_in.html"), path.Join(dir, "error.html"), path.Join(dir, "logout.html"))
-        //<!--COCO End-->
+	//<!--COCO End-->
 	if err != nil {
 		logger.Fatalf("failed parsing template %s", err)
 	}
@@ -183,7 +183,7 @@ func getTemplates() *template.Template {
 	}
 
 //<!--COCO Begin-->
-//COCO: Add logout html page to call coco logout API
+// COCO: Add logout html page to call coco logout API
         t, err = t.Parse(`{{define "logout.html"}}
 <!DOCTYPE html>
 <html lang="en" charset="utf-8">
@@ -197,12 +197,8 @@ function logout() {
         xhr.open("POST", url, true);
         xhr.withCredentials = true;
         xhr.onload = function () {
-          console.log(xhr.responseText);
           if (xhr.readyState == 4 && xhr.status == "200") {
-            console.log("Successful response: " + xhr.responseText);
             window.location="/";
-          } else {
-            console.error(users);
           }
         }
         xhr.send();

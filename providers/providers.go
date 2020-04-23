@@ -45,11 +45,11 @@ func New(provider string, p *ProviderData) Provider {
 		return NewNextcloudProvider(p)
 	case "digitalocean":
 		return NewDigitalOceanProvider(p)
-        //<!--COCO Begin-->
-        // COCO: New COCO provider added
-        case "coco":
-                return NewCOCOProvider(p)
-        //<!--COCO End-->
+	//<!--COCO Begin-->
+	// COCO: New COCO provider added
+	case "coco":
+		return NewCOCOProvider(p)
+	//<!--COCO End-->
 	default:
 		return NewGoogleProvider(p)
 	}

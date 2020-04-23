@@ -1,7 +1,7 @@
 /*===============================================================================*/
 /*********************************************************************************/
 /**
- * @fileOverview Contains grove-proxy api functionality.
+ * @fileOverview Contains coco provider functionality.
  * @author AMIYA SANTRA, amiyasantra@healthasyst.com
  * @copyright Copyright (c) 2020 Elear Solutions Tech Private Limited. All rights
  * reserved.
@@ -34,7 +34,7 @@ type COCOProvider struct {
 	*ProviderData
 }
 
-//COCO: NewCOCOProvider initiates a new COCOProvider
+// COCO: NewCOCOProvider initiates a new COCOProvider
 func NewCOCOProvider(p *ProviderData) *COCOProvider {
 	p.ProviderName = "COCO"
 	if p.LoginURL.String() == "" {
@@ -64,7 +64,7 @@ func NewCOCOProvider(p *ProviderData) *COCOProvider {
 	return &COCOProvider{ProviderData: p}
 }
 
-//COCO: segrigate coco header from acccess token
+// COCO: segrigate coco header from acccess token
 func getCOCOHeader(accessToken string) http.Header {
 	header := make(http.Header)
 	header.Set("Accept", "application/json")
@@ -74,7 +74,7 @@ func getCOCOHeader(accessToken string) http.Header {
 	return header
 }
 
-//COCO: GetEmailAddress returns the Account userId
+// COCO: GetEmailAddress returns the Account userId
 func (p *COCOProvider) GetEmailAddress(s *sessions.SessionState) (string, error) {
 	if s.AccessToken == "" {
 		return "", errors.New("missing access token")
@@ -100,7 +100,7 @@ func (p *COCOProvider) GetEmailAddress(s *sessions.SessionState) (string, error)
 	return r.Email , nil
 }
 
-//COCO: ValidateSessionState validates the AccessToken
+// COCO: ValidateSessionState validates the AccessToken
 func (p *COCOProvider) ValidateSessionState(s *sessions.SessionState) bool {
 	return validateToken(p, s.AccessToken, getCOCOHeader(s.AccessToken))
 }
