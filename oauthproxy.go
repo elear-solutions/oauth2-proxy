@@ -745,7 +745,7 @@ func (p *OAuthProxy) UserInfo(rw http.ResponseWriter, req *http.Request) {
 
 // SignOut sends a response to clear the authentication cookie
 func (p *OAuthProxy) SignOut(rw http.ResponseWriter, req *http.Request) {
-	 //<!--COCO Begin-->
+	//<!--COCO Begin-->
 	p.ClearSessionCookie(rw, req)
 	// COCO: calling CocoLogout to call coco logout API
         p.CocoLogout(rw, "Signing out")
