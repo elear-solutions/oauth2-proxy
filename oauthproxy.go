@@ -858,6 +858,14 @@ func (p *OAuthProxy) Proxy(rw http.ResponseWriter, req *http.Request) {
 	session, err := p.getAuthenticatedSession(rw, req)
 	switch err {
 	case nil:
+		//<!--COCO Begin-->
+		// COCO: check session token present in cookie or not
+		cookie, err := req.Cookie("sessionToken")
+		if err != nil {
+			logger.Printf("SessionToken not found, logging out application")
+			p.SignOut(rw, req)
+		}
+		//<!--COCO End-->
 		// we are authenticated
 		p.addHeadersForProxying(rw, req, session)
 		p.serveMux.ServeHTTP(rw, req)
