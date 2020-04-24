@@ -457,16 +457,20 @@ func (p *OAuthProxy) ErrorPage(rw http.ResponseWriter, code int, title string, m
 	p.templates.ExecuteTemplate(rw, "error.html", t)
 }
 
-// LogoutPage to call logout from cocostore
-func (p *OAuthProxy) CocostoreLogout(rw http.ResponseWriter, title string) {
+//<!--COCO Begin-->
+// COCO: logout from coco
+func (p *OAuthProxy) CocoLogout(rw http.ResponseWriter, title string) {
         rw.WriteHeader(http.StatusOK)
+        // COCO: create a  structure to pass a title in logout.html template
         t := struct {
                 Title       string
         }{
                 Title:       fmt.Sprintf("%d", title),
         }
+        // COCO: execute logout.html by passing structure t
         p.templates.ExecuteTemplate(rw, "logout.html", t)
 }
+//<!--COCO End-->
 
 
 // SignInPage writes the sing in template to the response
@@ -741,16 +745,11 @@ func (p *OAuthProxy) UserInfo(rw http.ResponseWriter, req *http.Request) {
 
 // SignOut sends a response to clear the authentication cookie
 func (p *OAuthProxy) SignOut(rw http.ResponseWriter, req *http.Request) {
-	/* redirect, err := p.GetRedirect(req)
-	if err != nil {
-		logger.Printf("Error obtaining redirect: %s", err.Error())
-		p.ErrorPage(rw, 500, "Internal Error", err.Error())
-		return
-	}
-        */
+	//<!--COCO Begin-->
 	p.ClearSessionCookie(rw, req)
-        p.CocostoreLogout(rw, "clear session token")
-	//http.Redirect(rw, req, redirect, 302)
+	// COCO: calling CocoLogout to call coco logout API
+	p.CocoLogout(rw, "Signing out")
+	//<!--COCO End-->
 }
 
 // OAuthStart starts the OAuth2 authentication flow
@@ -1130,20 +1129,6 @@ func isAjax(req *http.Request) bool {
         }
         return false
 }
-
-/*
-// isAjax checks if a request is an ajax request
-func isAjax(req *http.Request) bool {
-	acceptValues := req.Header.Values("Accept")
-	const ajaxReq = applicationJSON
-	for _, v := range acceptValues {
-		if v == ajaxReq {
-			return true
-		}
-	}
-	return false
-}
-*/
 
 // ErrorJSON returns the error code with an application/json mime type
 func (p *OAuthProxy) ErrorJSON(rw http.ResponseWriter, code int) {

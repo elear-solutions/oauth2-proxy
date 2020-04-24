@@ -12,7 +12,10 @@ func loadTemplates(dir string) *template.Template {
 		return getTemplates()
 	}
 	logger.Printf("using custom template directory %q", dir)
+	//<!--COCO Begin-->
+	// COCO: Added new template logout.html to parse it
 	t, err := template.New("").ParseFiles(path.Join(dir, "sign_in.html"), path.Join(dir, "error.html"), path.Join(dir, "logout.html"))
+	//<!--COCO End-->
 	if err != nil {
 		logger.Fatalf("failed parsing template %s", err)
 	}
@@ -179,6 +182,8 @@ func getTemplates() *template.Template {
 		logger.Fatalf("failed parsing template %s", err)
 	}
 
+//<!--COCO Begin-->
+// COCO: Add logout html page to call coco logout API
         t, err = t.Parse(`{{define "logout.html"}}
 <!DOCTYPE html>
 <html lang="en" charset="utf-8">
@@ -187,20 +192,13 @@ func getTemplates() *template.Template {
 </head>
 <script>
 function logout() {
-        var url = "https://api.staging.getcoco.buzz/v1/auth/logout";
-
+        var url = "https://api.getcoco.buzz/v1/auth/logout";
         var xhr = new XMLHttpRequest();
         xhr.open("POST", url, true);
         xhr.withCredentials = true;
         xhr.onload = function () {
-          console.log(xhr.responseText);
-          //var users = JSON.parse(xhr.responseText);
           if (xhr.readyState == 4 && xhr.status == "200") {
-            console.log("Successful response: " + xhr.responseText);
             window.location="/";
-            //location.reload();
-          } else {
-            console.error(users);
           }
         }
         xhr.send();
@@ -214,4 +212,5 @@ function logout() {
                 logger.Fatalf("failed parsing cococlearsession template %s", err)
         }
 	return t
+//<!--COCO End-->
 }
