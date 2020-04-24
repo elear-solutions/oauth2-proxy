@@ -870,7 +870,6 @@ func (p *OAuthProxy) Proxy(rw http.ResponseWriter, req *http.Request) {
 		p.addHeadersForProxying(rw, req, session)
 		p.serveMux.ServeHTTP(rw, req)
 
-
 	case ErrNeedsLogin:
 		// we need to send the user to a login screen
 		if isAjax(req) {
