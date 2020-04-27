@@ -861,7 +861,7 @@ func (p *OAuthProxy) Proxy(rw http.ResponseWriter, req *http.Request) {
 		//<!--COCO Begin-->
 		// COCO: check session token present in cookie or not
 		cookie, err := req.Cookie("sessionToken")
-		if err != nil {
+		if err != nil || cookie.Value == "" {
 			logger.Printf("SessionToken not found, logging out application")
 			p.SignOut(rw, req)
 		}
