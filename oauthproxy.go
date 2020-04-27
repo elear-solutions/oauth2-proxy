@@ -64,7 +64,7 @@ type OAuthProxy struct {
 	CookieSeed     string
 	CookieName     string
 	CSRFCookieName string
-	CookieDomain   string
+	CookieDomains  []string
 	CookiePath     string
 	CookieSecure   bool
 	CookieHTTPOnly bool
@@ -94,6 +94,7 @@ type OAuthProxy struct {
 	serveMux             http.Handler
 	SetXAuthRequest      bool
 	PassBasicAuth        bool
+	SetBasicAuth         bool
 	SkipProviderButton   bool
 	PassUserHeaders      bool
 	BasicAuthPassword    string
@@ -190,6 +191,9 @@ func NewWebSocketOrRestReverseProxy(u *url.URL, opts *Options, auth hmacauth.Hma
 		wsScheme := "ws" + strings.TrimPrefix(u.Scheme, "http")
 		wsURL := &url.URL{Scheme: wsScheme, Host: u.Host}
 		wsProxy = wsutil.NewSingleHostReverseProxy(wsURL)
+		if opts.SSLUpstreamInsecureSkipVerify {
+			wsProxy.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		}
 	}
 	return &UpstreamProxy{
 		upstream:  u.Host,
@@ -264,13 +268,13 @@ func NewOAuthProxy(opts *Options, validator func(string) bool) *OAuthProxy {
 		refresh = fmt.Sprintf("after %s", opts.CookieRefresh)
 	}
 
-	logger.Printf("Cookie settings: name:%s secure(https):%v httponly:%v expiry:%s domain:%s path:%s samesite:%s refresh:%s", opts.CookieName, opts.CookieSecure, opts.CookieHTTPOnly, opts.CookieExpire, opts.CookieDomain, opts.CookiePath, opts.CookieSameSite, refresh)
+	logger.Printf("Cookie settings: name:%s secure(https):%v httponly:%v expiry:%s domains:%s path:%s samesite:%s refresh:%s", opts.CookieName, opts.CookieSecure, opts.CookieHTTPOnly, opts.CookieExpire, strings.Join(opts.CookieDomains, ","), opts.CookiePath, opts.CookieSameSite, refresh)
 
 	return &OAuthProxy{
 		CookieName:     opts.CookieName,
 		CSRFCookieName: fmt.Sprintf("%v_%v", opts.CookieName, "csrf"),
 		CookieSeed:     opts.CookieSecret,
-		CookieDomain:   opts.CookieDomain,
+		CookieDomains:  opts.CookieDomains,
 		CookiePath:     opts.CookiePath,
 		CookieSecure:   opts.CookieSecure,
 		CookieHTTPOnly: opts.CookieHTTPOnly,
@@ -302,6 +306,7 @@ func NewOAuthProxy(opts *Options, validator func(string) bool) *OAuthProxy {
 		compiledRegex:        opts.CompiledRegex,
 		SetXAuthRequest:      opts.SetXAuthRequest,
 		PassBasicAuth:        opts.PassBasicAuth,
+		SetBasicAuth:         opts.SetBasicAuth,
 		PassUserHeaders:      opts.PassUserHeaders,
 		BasicAuthPassword:    opts.BasicAuthPassword,
 		PassAccessToken:      opts.PassAccessToken,
@@ -322,8 +327,7 @@ func (p *OAuthProxy) GetRedirectURI(host string) string {
 	if p.redirectURL.Host != "" {
 		return p.redirectURL.String()
 	}
-	var u url.URL
-	u = *p.redirectURL
+	u := *p.redirectURL
 	if u.Scheme == "" {
 		if p.CookieSecure {
 			u.Scheme = httpsScheme
@@ -375,13 +379,15 @@ func (p *OAuthProxy) MakeCSRFCookie(req *http.Request, value string, expiration 
 }
 
 func (p *OAuthProxy) makeCookie(req *http.Request, name string, value string, expiration time.Duration, now time.Time) *http.Cookie {
-	if p.CookieDomain != "" {
-		domain := req.Host
+	cookieDomain := cookies.GetCookieDomain(req, p.CookieDomains)
+
+	if cookieDomain != "" {
+		domain := cookies.GetRequestHost(req)
 		if h, _, err := net.SplitHostPort(domain); err == nil {
 			domain = h
 		}
-		if !strings.HasSuffix(domain, p.CookieDomain) {
-			logger.Printf("Warning: request host is %q but using configured cookie domain of %q", domain, p.CookieDomain)
+		if !strings.HasSuffix(domain, cookieDomain) {
+			logger.Printf("Warning: request host is %q but using configured cookie domain of %q", domain, cookieDomain)
 		}
 	}
 
@@ -389,7 +395,7 @@ func (p *OAuthProxy) makeCookie(req *http.Request, name string, value string, ex
 		Name:     name,
 		Value:    value,
 		Path:     p.CookiePath,
-		Domain:   p.CookieDomain,
+		Domain:   cookieDomain,
 		HttpOnly: p.CookieHTTPOnly,
 		Secure:   p.CookieSecure,
 		Expires:  now.Add(expiration),
@@ -451,8 +457,25 @@ func (p *OAuthProxy) ErrorPage(rw http.ResponseWriter, code int, title string, m
 	p.templates.ExecuteTemplate(rw, "error.html", t)
 }
 
+//<!--COCO Begin-->
+// COCO: logout from coco
+func (p *OAuthProxy) CocoLogout(rw http.ResponseWriter, title string) {
+        rw.WriteHeader(http.StatusOK)
+        // COCO: create a  structure to pass a title in logout.html template
+        t := struct {
+                Title       string
+        }{
+                Title:       fmt.Sprintf("%d", title),
+        }
+        // COCO: execute logout.html by passing structure t
+        p.templates.ExecuteTemplate(rw, "logout.html", t)
+}
+//<!--COCO End-->
+
+
 // SignInPage writes the sing in template to the response
 func (p *OAuthProxy) SignInPage(rw http.ResponseWriter, req *http.Request, code int) {
+	prepareNoCache(rw)
 	p.ClearSessionCookie(rw, req)
 	rw.WriteHeader(code)
 
@@ -633,7 +656,26 @@ func getRemoteAddr(req *http.Request) (s string) {
 	return
 }
 
+// See https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/http-caching?hl=en
+var noCacheHeaders = map[string]string{
+	"Expires":         time.Unix(0, 0).Format(time.RFC1123),
+	"Cache-Control":   "no-cache, no-store, must-revalidate, max-age=0",
+	"X-Accel-Expires": "0", // https://www.nginx.com/resources/wiki/start/topics/examples/x-accel/
+}
+
+// prepareNoCache prepares headers for preventing browser caching.
+func prepareNoCache(w http.ResponseWriter) {
+	// Set NoCache headers
+	for k, v := range noCacheHeaders {
+		w.Header().Set(k, v)
+	}
+}
+
 func (p *OAuthProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	if strings.HasPrefix(req.URL.Path, p.ProxyPrefix) {
+		prepareNoCache(rw)
+	}
+
 	switch path := req.URL.Path; {
 	case path == p.RobotsPath:
 		p.RobotsTxt(rw)
@@ -671,7 +713,7 @@ func (p *OAuthProxy) SignIn(rw http.ResponseWriter, req *http.Request) {
 	if ok {
 		session := &sessionsapi.SessionState{User: user}
 		p.SaveSession(rw, req, session)
-		http.Redirect(rw, req, redirect, 302)
+		http.Redirect(rw, req, redirect, http.StatusFound)
 	} else {
 		if p.SkipProviderButton {
 			p.OAuthStart(rw, req)
@@ -703,18 +745,16 @@ func (p *OAuthProxy) UserInfo(rw http.ResponseWriter, req *http.Request) {
 
 // SignOut sends a response to clear the authentication cookie
 func (p *OAuthProxy) SignOut(rw http.ResponseWriter, req *http.Request) {
-	redirect, err := p.GetRedirect(req)
-	if err != nil {
-		logger.Printf("Error obtaining redirect: %s", err.Error())
-		p.ErrorPage(rw, 500, "Internal Error", err.Error())
-		return
-	}
+	//<!--COCO Begin-->
 	p.ClearSessionCookie(rw, req)
-	http.Redirect(rw, req, redirect, 302)
+	// COCO: calling CocoLogout to call coco logout API
+	p.CocoLogout(rw, "Signing out")
+	//<!--COCO End-->
 }
 
 // OAuthStart starts the OAuth2 authentication flow
 func (p *OAuthProxy) OAuthStart(rw http.ResponseWriter, req *http.Request) {
+	prepareNoCache(rw)
 	nonce, err := encryption.Nonce()
 	if err != nil {
 		logger.Printf("Error obtaining nonce: %s", err.Error())
@@ -729,7 +769,7 @@ func (p *OAuthProxy) OAuthStart(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 	redirectURI := p.GetRedirectURI(req.Host)
-	http.Redirect(rw, req, p.provider.GetLoginURL(redirectURI, fmt.Sprintf("%v:%v", nonce, redirect)), 302)
+	http.Redirect(rw, req, p.provider.GetLoginURL(redirectURI, fmt.Sprintf("%v:%v", nonce, redirect)), http.StatusFound)
 }
 
 // OAuthCallback is the OAuth2 authentication flow callback that finishes the
@@ -792,7 +832,7 @@ func (p *OAuthProxy) OAuthCallback(rw http.ResponseWriter, req *http.Request) {
 			p.ErrorPage(rw, 500, "Internal Error", "Internal Error")
 			return
 		}
-		http.Redirect(rw, req, redirect, 302)
+		http.Redirect(rw, req, redirect, http.StatusFound)
 	} else {
 		logger.PrintAuthf(session.Email, req, logger.AuthFailure, "Invalid authentication via OAuth2: unauthorized")
 		p.ErrorPage(rw, 403, "Permission Denied", "Invalid Account")
@@ -818,6 +858,14 @@ func (p *OAuthProxy) Proxy(rw http.ResponseWriter, req *http.Request) {
 	session, err := p.getAuthenticatedSession(rw, req)
 	switch err {
 	case nil:
+		//<!--COCO Begin-->
+		// COCO: check session token present in cookie or not
+		cookie, err := req.Cookie("sessionToken")
+		if err != nil || cookie.Value == "" {
+			logger.Printf("SessionToken not found, logging out application")
+			p.SignOut(rw, req)
+		}
+		//<!--COCO End-->
 		// we are authenticated
 		p.addHeadersForProxying(rw, req, session)
 		p.serveMux.ServeHTTP(rw, req)
@@ -1016,6 +1064,14 @@ func (p *OAuthProxy) addHeadersForProxying(rw http.ResponseWriter, req *http.Req
 			req.Header.Del("Authorization")
 		}
 	}
+	if p.SetBasicAuth {
+		if session.User != "" {
+			authVal := b64.StdEncoding.EncodeToString([]byte(session.User + ":" + p.BasicAuthPassword))
+			rw.Header().Set("Authorization", "Basic "+authVal)
+		} else {
+			rw.Header().Del("Authorization")
+		}
+	}
 	if p.SetAuthorization {
 		if session.IDToken != "" {
 			rw.Header().Set("Authorization", fmt.Sprintf("Bearer %s", session.IDToken))
@@ -1063,17 +1119,17 @@ func (p *OAuthProxy) CheckBasicAuth(req *http.Request) (*sessionsapi.SessionStat
 
 // isAjax checks if a request is an ajax request
 func isAjax(req *http.Request) bool {
-	acceptValues, ok := req.Header["accept"]
-	if !ok {
-		acceptValues = req.Header["Accept"]
-	}
-	const ajaxReq = applicationJSON
-	for _, v := range acceptValues {
-		if v == ajaxReq {
-			return true
-		}
-	}
-	return false
+        acceptValues, ok := req.Header["accept"]
+        if !ok {
+                acceptValues = req.Header["Accept"]
+        }
+        const ajaxReq = applicationJSON
+        for _, v := range acceptValues {
+                if v == ajaxReq {
+                        return true
+                }
+        }
+        return false
 }
 
 // ErrorJSON returns the error code with an application/json mime type
